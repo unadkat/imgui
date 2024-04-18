@@ -7262,13 +7262,15 @@ ImGuiMultiSelectIO* ImGui::EndMultiSelect()
 
     // Clear selection when clicking void?
     // We specifically test for IsMouseDragPastThreshold(0) == false to allow box-selection!
-    bool scope_hovered = IsWindowHovered();
+    // The InnerRect test is necessary for non-child/decorated windows.
+    bool scope_hovered = IsWindowHovered() && window->InnerRect.Contains(g.IO.MousePos);
     if (scope_hovered && (ms->Flags & ImGuiMultiSelectFlags_ScopeRect))
         scope_hovered &= scope_rect.Contains(g.IO.MousePos);
     if (scope_hovered && g.HoveredId == 0 && g.ActiveId == 0)
     {
         if (ms->Flags & ImGuiMultiSelectFlags_BoxSelect)
         {
+            // FIXME-MULTISELECT: Stealing HoverId for full scope prevents moving windows (ok) but also prevents focusing from happening. Also steals NavId.
             if (!g.BoxSelectState.IsActive && !g.BoxSelectState.IsStarting && g.IO.MouseClickedCount[0] == 1)
                 BoxSelectStartDrag(ms->BoxSelectId, ImGuiSelectionUserData_Invalid);
             SetHoveredID(ms->BoxSelectId);
